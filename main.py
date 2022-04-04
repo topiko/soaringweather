@@ -1,18 +1,23 @@
 """
 This is simple soaring weather forecast downloader.
 """
-import re
 import io
+
+from PIL import Image
+from itertools import product
 
 import requests as req
 import numpy as np
 import matplotlib.pyplot as plt
 
-from PIL import Image
-from itertools import product
 
 
 WEBPAGE = "http://rasp.skyltdirect.se/scandinavia/"
+DAYS = ['curr', 'curr+1']
+CLOCKTIMES = ['1200', '1400', '1600']
+TIMES = list(product(DAYS, CLOCKTIMES))
+FIGW=10
+FIGH=7
 
 
 class ForecastImage():
@@ -21,27 +26,28 @@ class ForecastImage():
         pass
 
 
-    def make_query(self,
-                   region: tuple[str, str],
-                   forecast: tuple[str, str],
-                   time: tuple[str, str]) -> str:
-
-        reg = ''.join(region)
-        forec = ''.join(forecast)
-        time = '.'.join(time)
-        return {'fn': f'{reg}{forec}.{time}lst.d2.png'}
-
     def make_pil_image(self, bytes_) -> Image:
         return Image.open(io.BytesIO(bytes_)).convert('RGBA')
 
     def get_foreground(self, *args) -> Image:
 
-        resp = req.get(url=WEBPAGE + 'getimg.php', params=self.make_query(*args))
+        def make_query(region: tuple[str, str],
+                       forecast: tuple[str, str],
+                       time: tuple[str, str]) -> str:
+
+            reg = ''.join(region)
+            forec = ''.join(forecast)
+            time = '.'.join(time)
+            return {'fn': f'{reg}{forec}.{time}lst.d2.png'}
+
+
+        resp = req.get(url=WEBPAGE + 'getimg.php', params=make_query(*args))
         return self.make_pil_image(resp.content)
 
     def get_background(self, region):
 
-        resp_bg = req.get(url=WEBPAGE + 'bgmap{}.gif'.format(''.join(region)))
+        region = ''.join(region)
+        resp_bg = req.get(url=WEBPAGE + f'bgmap{region}.gif')
         return self.make_pil_image(resp_bg.content)
 
     def set_attr(self, region, forecast, time):
@@ -97,11 +103,6 @@ class ForecastImage():
 
         return zoomed, np.array(zoomed)
 
-DAYS = ['curr', 'curr+1']
-CLOCKTIMES = ['1200', '1400', '1600']
-TIMES = list(product(DAYS, CLOCKTIMES))
-FIGW=10
-FIGH=7
 
 def get_karlstad(forecast=('map', 'sw'),
                  times=TIMES):
