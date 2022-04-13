@@ -117,6 +117,7 @@ class ForecastImage():
 import matplotlib.patches as patches
 from matplotlib.colors import to_rgb
 
+
 def get_karlstad(forecast=('map', 'sw'),
                  times=TIMES):
 
@@ -124,8 +125,8 @@ def get_karlstad(forecast=('map', 'sw'),
 
     fig, axarr = plt.subplots(len(DAYS), len(CLOCKTIMES), figsize=(FIGW, FIGH))
     _, axarr2 = plt.subplots(len(DAYS), len(CLOCKTIMES), figsize=(FIGW, FIGH))
+    img = ForecastImage()
     for t, ax, ax2 in zip(times, axarr.ravel(), axarr2.ravel()):
-        img = ForecastImage()
         img_ = img.get_image(region, forecast, t)
 
         pil_img, img_ = img.make_image(zoom=(.1, 0, .6, .6))
@@ -166,10 +167,11 @@ def get_karlstad(forecast=('map', 'sw'),
         ax.axis('off')
 
     plt.tight_layout()
-    plt.savefig('figs/karlstad.png')
+    #plt.savefig('figs/karlstad.png')
     return fig
 
 if __name__ == "__main__" :
 
     get_karlstad()
+
     plt.show()
